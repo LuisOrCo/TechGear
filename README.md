@@ -177,3 +177,12 @@ Django consume los endpoints de FastAPI mediante `httpx` para obtener y mostrar 
 ```
 
 De esta manera, **FastAPI** se encarga de la API y la comunicación con la base de datos, mientras que **Django** se encarga de la aplicación web y el renderizado de las plantillas.
+
+
+## URL DEL DEPLOY DE LA API
+
+Copia la URL y pégala en tu browser favorito.
+
+```text
+       https://techgear-gepm.onrender.com
+```
