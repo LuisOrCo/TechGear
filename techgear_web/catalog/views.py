@@ -1,7 +1,9 @@
 import httpx
 from django.shortcuts import render
 
-FASTAPI_URL = "http://127.0.0.1:8000"
+
+#FASTAPI_URL = "http://127.0.0.1:8000 Para local, para producción usar la URL de render"
+FASTAPI_URL = "https://techgear-gepm.onrender.com"
 
 
 def product_list(request):
