@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechGear - Checkout</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #1f2937;
+        }
+
+        header {
+            background-color: #111827;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+        }
+
+        header p {
+            margin-top: 5px;
+            color: #d1d5db;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 8px;
+            color: #111827;
+        }
+
+        .alert-error {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .product-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8fafc;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 15px;
+        }
+
+        .product-info h3 {
+            font-size: 18px;
+            color: #1e293b;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-submit:hover {
+            background-color: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Checkout TechGear</h1>
+        <p>Registro de Cliente y Confirmación de Pedido</p>
+    </header>
+
+    <main class="container">
+        <a href="{% url 'product_list' %}" class="back-link">&larr; Volver al Catálogo</a>
+
+        {% if error %}
+            <div class="alert-error">
+                <strong>Error:</strong> {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST" action="">
+            {% csrf_token %}
+
+            <div class="card">
+                <h2>1. Producto Seleccionado</h2>
+
+                {% if selected_product %}
+                    <input type="hidden" name="product_id" value="{{ selected_product.id }}">
+                    <div class="product-info">
+                        <div>
+                            <h3>{{ selected_product.name }}</h3>
+                            <p style="color: #64748b; margin-top: 4px;">Categoría: {{ selected_product.category|default:"General" }}</p>
+                        </div>
+                        <div class="product-price">
+                            ${{ selected_product.price|floatformat:0 }}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="form-group">
+                        <label for="product_id">Seleccionar Producto *</label>
+                        <select name="product_id" id="product_id" required>
+                            <option value="">-- Seleccione un producto --</option>
+                            {% for p in products %}
+                                {% if p.stock > 0 %}
+                                    <option value="{{ p.id }}">{{ p.name }} - ${{ p.price|floatformat:0 }} (Stock: {{ p.stock }})</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="quantity">Cantidad *</label>
+                    <input type="number" name="quantity" id="quantity" min="1" value="1" required>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>2. Datos del Cliente</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Nombre *</label>
+                        <input type="text" name="name" id="name" placeholder="Ej. Juan" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastname">Apellido *</label>
+                        <input type="text" name="lastname" id="lastname" placeholder="Ej. Pérez" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Correo Electrónico *</label>
+                        <input type="email" name="email" id="email" placeholder="juan.perez@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Teléfono *</label>
+                        <input type="tel" name="phone" id="phone" placeholder="+573001234567" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Dirección de Entrega *</label>
+                    <input type="text" name="address" id="address" placeholder="Calle 10 # 40-20, Medellín" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Confirmar y Realizar Pedido</button>
+            </div>
+        </form>
+    </main>
+
+</body>
+</html>

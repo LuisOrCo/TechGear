@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechGear - Pedido Confirmado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #1f2937;
+        }
+
+        header {
+            background-color: #111827;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 700px;
+            margin: 40px auto;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 35px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .icon-success {
+            width: 70px;
+            height: 70px;
+            background-color: #dcfce7;
+            color: #16a34a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px auto;
+        }
+
+        h2 {
+            color: #16a34a;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        p.subtitle {
+            color: #4b5563;
+            margin-bottom: 25px;
+        }
+
+        .details-box {
+            text-align: left;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .details-box h3 {
+            font-size: 16px;
+            color: #1e293b;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .row .label {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .row .value {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .total-row {
+            font-size: 18px;
+            color: #2563eb;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px dashed #e2e8f0;
+        }
+
+        .btn-catalog {
+            display: inline-block;
+            background-color: #111827;
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-catalog:hover {
+            background-color: #1f2937;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>TechGear Store</h1>
+    </header>
+
+    <main class="container">
+        <div class="card">
+            <div class="icon-success">&#10003;</div>
+            <h2>¡Pedido Realizado con Éxito!</h2>
+            <p class="subtitle">Los datos del cliente y la orden han sido registrados correctamente en la base de datos.</p>
+
+            <div class="details-box">
+                <h3>Resumen del Cliente Registrado</h3>
+                <div class="row">
+                    <span class="label">ID Cliente (MongoDB):</span>
+                    <span class="value">{{ customer.id }}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Nombre completo:</span>
+                    <span class="value">{{ customer.name }} {{ customer.lastname }}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Email:</span>
+                    <span class="value">{{ customer.email }}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Teléfono:</span>
+                    <span class="value">{{ customer.phone }}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Dirección:</span>
+                    <span class="value">{{ customer.address }}</span>
+                </div>
+            </div>
+
+            <div class="details-box">
+                <h3>Resumen del Pedido</h3>
+                <div class="row">
+                    <span class="label">ID Pedido (MongoDB):</span>
+                    <span class="value">{{ order.id }}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Producto:</span>
+                    <span class="value">{{ product.name }}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Cantidad:</span>
+                    <span class="value">{{ quantity }}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Email Asociado:</span>
+                    <span class="value">{{ order.customer_email|default:customer.email }}</span>
+                </div>
+                <div class="row total-row">
+                    <span class="label">Total Pagado:</span>
+                    <span class="value">${{ total|floatformat:0 }}</span>
+                </div>
+            </div>
+
+            <a href="{% url 'product_list' %}" class="btn-catalog">Volver al Catálogo</a>
+        </div>
+    </main>
+
+</body>
+</html>

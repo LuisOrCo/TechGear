@@ -53,6 +53,9 @@
             padding: 25px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             transition: transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .product-card:hover {
@@ -68,15 +71,63 @@
             font-size: 20px;
             font-weight: bold;
             margin-bottom: 10px;
+            color: #2563eb;
         }
 
         .stock {
             color: #4b5563;
+            margin-bottom: 8px;
         }
 
         .available {
             color: #15803d;
             font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .sold-out {
+            color: #dc2626;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .btn-buy {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-buy:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-disabled {
+            display: inline-block;
+            background-color: #9ca3af;
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: not-allowed;
+        }
+
+        .alert-box {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 16px;
         }
 
         .no-products {
@@ -97,6 +148,12 @@
 
     <main class="catalog">
 
+        {% if error %}
+            <div class="alert-box">
+                <strong>Alerta:</strong> {{ error }}
+            </div>
+        {% endif %}
+
         {% if products %}
 
             <div class="products">
@@ -105,20 +162,28 @@
 
                     <div class="product-card">
 
-                        <h2>{{ product.name }}</h2>
+                        <div>
+                            <h2>{{ product.name }}</h2>
 
-                        <p class="price">
-                            Precio: ${{ product.price|floatformat:0 }}
-                        </p>
+                            <p class="price">
+                                Precio: ${{ product.price|floatformat:0 }}
+                            </p>
 
-                        <p class="stock">
-                            Stock disponible: {{ product.stock }}
-                        </p>
+                            <p class="stock">
+                                Stock disponible: {{ product.stock }}
+                            </p>
+
+                            {% if product.stock > 0 %}
+                                <p class="available">Disponible</p>
+                            {% else %}
+                                <p class="sold-out">Agotado</p>
+                            {% endif %}
+                        </div>
 
                         {% if product.stock > 0 %}
-                            <p class="available">Disponible</p>
+                            <a href="{% url 'checkout' product.id %}" class="btn-buy">Comprar / Pedir</a>
                         {% else %}
-                            <p>Agotado</p>
+                            <span class="btn-disabled">Agotado</span>
                         {% endif %}
 
                     </div>
@@ -130,7 +195,7 @@
         {% else %}
 
             <div class="no-products">
-                <p>No hay productos disponibles.</p>
+                <p>No hay productos disponibles actualmente.</p>
             </div>
 
         {% endif %}

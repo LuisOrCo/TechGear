@@ -15,7 +15,7 @@ app = FastAPI(
 
 app.include_router(products_router)
 app.include_router(orders_router)
-app.include_router(customer_router, prefix="/customers", tags=["Customers"])
+app.include_router(customer_router)
 
 @app.get("/")
 def inicio():
