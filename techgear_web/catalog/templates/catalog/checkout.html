@@ -17,8 +17,59 @@
             color: #1f2937;
         }
 
-        header {
+        /* Navbar Styles */
+        .navbar {
             background-color: #111827;
+            border-bottom: 1px solid #1f2937;
+            padding: 0 20px;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .navbar-brand {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-nav {
+            display: flex;
+            list-style: none;
+            gap: 8px;
+        }
+
+        .nav-link {
+            color: #9ca3af;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+            background-color: #1f2937;
+        }
+
+        .nav-link.active {
+            color: #ffffff;
+            background-color: #2563eb;
+        }
+
+        header {
+            background-color: #1f2937;
             color: white;
             padding: 30px;
             text-align: center;
@@ -148,6 +199,31 @@
     </style>
 </head>
 <body>
+
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{% url 'product_list' %}" class="navbar-brand">
+                ⚡ TechGear
+            </a>
+            <ul class="navbar-nav">
+                <li>
+                    <a href="{% url 'product_list' %}" class="nav-link {% if active_tab == 'catalog' %}active{% endif %}">
+                        🛒 Catálogo
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin_panel' %}" class="nav-link {% if active_tab == 'admin' %}active{% endif %}">
+                        ⚙️ Panel Administrador
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'orders_list' %}" class="nav-link {% if active_tab == 'orders' %}active{% endif %}">
+                        📦 Pedidos
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
 
     <header>
         <h1>Checkout TechGear</h1>

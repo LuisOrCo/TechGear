@@ -4,6 +4,7 @@ from app.schemas.product import ProductCreate
 from app.services.product_service import (
     create_product,
     get_products,
+    get_product_by_id,
     update_product,
     delete_product
 )
@@ -23,6 +24,17 @@ def create_new_product(product: ProductCreate):
 @router.get("/")
 def get_all_products():
     return get_products()
+
+
+@router.get("/{product_id}")
+def get_product(product_id: str):
+    product = get_product_by_id(product_id)
+    if product is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found"
+        )
+    return product
 
 
 @router.put("/{product_id}")

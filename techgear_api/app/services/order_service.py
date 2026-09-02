@@ -53,3 +53,12 @@ def get_orders():
         order["_id"] = str(order["_id"])
 
     return orders
+
+
+def get_order_by_id(order_id: str):
+    if not ObjectId.is_valid(order_id):
+        return None
+    order = db["pedidos"].find_one({"_id": ObjectId(order_id)})
+    if order:
+        order["_id"] = str(order["_id"])
+    return order

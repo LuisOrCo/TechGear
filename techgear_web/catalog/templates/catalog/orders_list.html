@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechGear - Pedidos Almacenados</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #1f2937;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            background-color: #111827;
+            border-bottom: 1px solid #1f2937;
+            padding: 0 20px;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+
+        .navbar-brand {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-nav {
+            display: flex;
+            list-style: none;
+            gap: 8px;
+        }
+
+        .nav-link {
+            color: #9ca3af;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: #ffffff;
+            background-color: #1f2937;
+        }
+
+        .nav-link.active {
+            color: #ffffff;
+            background-color: #2563eb;
+        }
+
+        header {
+            background-color: #1f2937;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 32px;
+        }
+
+        header p {
+            margin-top: 8px;
+            color: #d1d5db;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+        .alert-error {
+            background-color: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .table-responsive {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .order-id {
+            font-family: monospace;
+            font-size: 13px;
+            background-color: #f1f5f9;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #334155;
+        }
+
+        .total-amount {
+            font-weight: bold;
+            color: #2563eb;
+            font-size: 16px;
+        }
+
+        .btn-detail {
+            background-color: #2563eb;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 13px;
+            display: inline-block;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-detail:hover {
+            background-color: #1d4ed8;
+        }
+
+        .empty-orders {
+            text-align: center;
+            color: #64748b;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{% url 'product_list' %}" class="navbar-brand">
+                ⚡ TechGear
+            </a>
+            <ul class="navbar-nav">
+                <li>
+                    <a href="{% url 'product_list' %}" class="nav-link {% if active_tab == 'catalog' %}active{% endif %}">
+                        🛒 Catálogo
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'admin_panel' %}" class="nav-link {% if active_tab == 'admin' %}active{% endif %}">
+                        ⚙️ Panel Administrador
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'orders_list' %}" class="nav-link {% if active_tab == 'orders' %}active{% endif %}">
+                        📦 Pedidos
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <header>
+        <h1>Historial de Pedidos</h1>
+        <p>Listado de pedidos registrados en MongoDB Atlas</p>
+    </header>
+
+    <main class="container">
+
+        {% if error %}
+            <div class="alert-error">
+                <strong>Error:</strong> {{ error }}
+            </div>
+        {% endif %}
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID Pedido (MongoDB)</th>
+                        <th>Cliente</th>
+                        <th>Correo Electrónico</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if orders %}
+                        {% for o in orders %}
+                            <tr>
+                                <td>
+                                    <span class="order-id">{{ o.id }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ o.client_name }}</strong>
+                                </td>
+                                <td>
+                                    {{ o.customer_email|default:"No especificado" }}
+                                </td>
+                                <td>
+                                    {{ o.quantity }} unid.
+                                </td>
+                                <td>
+                                    <span class="total-amount">${{ o.total|floatformat:0 }}</span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'order_detail' o.id %}" class="btn-detail">
+                                        🔍 Ver Detalles
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="empty-orders">
+                                No se encontraron pedidos en la base de datos.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+</body>
+</html>

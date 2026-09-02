@@ -1,9 +1,29 @@
+import os
 import httpx
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+
+FASTAPI_URL = os.environ.get("FASTAPI_URL", "https://techgear-gepm.onrender.com")
+LOCAL_FASTAPI_URL = "http://127.0.0.1:8000"
 
 
-#FASTAPI_URL = "http://127.0.0.1:8000 Para local, para producción usar la URL de render"
-FASTAPI_URL = "https://techgear-gepm.onrender.com"
+def fetch_api(method, path, **kwargs):
+    """
+    Realiza una petición HTTP a la API de FastAPI.
+    Intenta primero la URL configurada (Render/Env) y si falla por RequestError,
+    intenta con la URL local (http://127.0.0.1:8000) de respaldo.
+    """
+    timeout = kwargs.pop("timeout", 5.0)
+    try:
+        url = f"{FASTAPI_URL.rstrip('/')}{path}"
+        return httpx.request(method, url, timeout=timeout, **kwargs)
+    except httpx.RequestError:
+        if FASTAPI_URL != LOCAL_FASTAPI_URL:
+            try:
+                url_local = f"{LOCAL_FASTAPI_URL}{path}"
+                return httpx.request(method, url_local, timeout=timeout, **kwargs)
+            except httpx.RequestError:
+                pass
+        raise
 
 
 def product_list(request):
@@ -11,7 +31,7 @@ def product_list(request):
     error = None
 
     try:
-        response = httpx.get(f"{FASTAPI_URL}/products/", timeout=5.0)
+        response = fetch_api("GET", "/products/")
         if response.status_code == 200:
             products = response.json()
             for p in products:
@@ -27,6 +47,7 @@ def product_list(request):
     return render(request, "catalog/products.html", {
         "products": products,
         "error": error,
+        "active_tab": "catalog",
     })
 
 
@@ -36,7 +57,7 @@ def checkout(request, product_id=None):
     error = None
 
     try:
-        response = httpx.get(f"{FASTAPI_URL}/products/", timeout=5.0)
+        response = fetch_api("GET", "/products/")
         if response.status_code == 200:
             products = response.json()
             for p in products:
@@ -47,7 +68,7 @@ def checkout(request, product_id=None):
         else:
             error = f"Error al cargar productos desde la API (HTTP {response.status_code})."
     except httpx.RequestError:
-        error = "No se pudo conectar con la API de FastAPI. Verifica que la API esté encendida en http://127.0.0.1:8000."
+        error = "No se pudo conectar con la API de FastAPI. Verifica que la API esté encendida."
     except Exception as e:
         error = f"Error al conectar con la API de productos: {str(e)}"
 
@@ -76,6 +97,7 @@ def checkout(request, product_id=None):
                 "products": products,
                 "selected_product": selected_product,
                 "error": error,
+                "active_tab": "catalog",
             })
 
         # Control de Excepción: Productos sin stock o cantidad excedida
@@ -86,6 +108,7 @@ def checkout(request, product_id=None):
                 "products": products,
                 "selected_product": selected_product,
                 "error": error,
+                "active_tab": "catalog",
             })
 
         if quantity > available_stock:
@@ -94,6 +117,7 @@ def checkout(request, product_id=None):
                 "products": products,
                 "selected_product": selected_product,
                 "error": error,
+                "active_tab": "catalog",
             })
 
         if not (name and lastname and email and phone and address):
@@ -102,6 +126,7 @@ def checkout(request, product_id=None):
                 "products": products,
                 "selected_product": selected_product,
                 "error": error,
+                "active_tab": "catalog",
             })
 
         unit_price = float(selected_product.get("price", 0))
@@ -117,13 +142,14 @@ def checkout(request, product_id=None):
         }
 
         try:
-            customer_resp = httpx.post(f"{FASTAPI_URL}/customers/", json=customer_payload, timeout=5.0)
+            customer_resp = fetch_api("POST", "/customers/", json=customer_payload)
             if customer_resp.status_code not in (200, 201):
                 detail = customer_resp.json().get("detail", "Error registrando el cliente")
                 return render(request, "catalog/checkout.html", {
                     "products": products,
                     "selected_product": selected_product,
                     "error": f"Error al registrar cliente: {detail}",
+                    "active_tab": "catalog",
                 })
             created_customer = customer_resp.json()
             if isinstance(created_customer, dict):
@@ -133,12 +159,14 @@ def checkout(request, product_id=None):
                 "products": products,
                 "selected_product": selected_product,
                 "error": "Servicio de Clientes no disponible (Servidor FastAPI caído).",
+                "active_tab": "catalog",
             })
         except Exception as e:
             return render(request, "catalog/checkout.html", {
                 "products": products,
                 "selected_product": selected_product,
                 "error": f"No se pudo registrar el cliente: {str(e)}",
+                "active_tab": "catalog",
             })
 
         # 2. Registrar pedido en FastAPI (/orders/)
@@ -151,13 +179,14 @@ def checkout(request, product_id=None):
         }
 
         try:
-            order_resp = httpx.post(f"{FASTAPI_URL}/orders/", json=order_payload, timeout=5.0)
+            order_resp = fetch_api("POST", "/orders/", json=order_payload)
             if order_resp.status_code not in (200, 201):
                 detail = order_resp.json().get("detail", "Error creando el pedido")
                 return render(request, "catalog/checkout.html", {
                     "products": products,
                     "selected_product": selected_product,
                     "error": f"Error al crear el pedido: {detail}",
+                    "active_tab": "catalog",
                 })
             created_order = order_resp.json()
             if isinstance(created_order, dict):
@@ -167,12 +196,14 @@ def checkout(request, product_id=None):
                 "products": products,
                 "selected_product": selected_product,
                 "error": "Servicio de Pedidos no disponible (Servidor FastAPI caído).",
+                "active_tab": "catalog",
             })
         except Exception as e:
             return render(request, "catalog/checkout.html", {
                 "products": products,
                 "selected_product": selected_product,
                 "error": f"No se pudo crear el pedido: {str(e)}",
+                "active_tab": "catalog",
             })
 
         return render(request, "catalog/order_success.html", {
@@ -181,10 +212,169 @@ def checkout(request, product_id=None):
             "product": selected_product,
             "quantity": quantity,
             "total": total,
+            "active_tab": "catalog",
         })
 
     return render(request, "catalog/checkout.html", {
         "products": products,
         "selected_product": selected_product,
         "error": error,
+        "active_tab": "catalog",
+    })
+
+
+def admin_panel(request):
+    products = []
+    error = None
+
+    try:
+        response = fetch_api("GET", "/products/")
+        if response.status_code == 200:
+            products = response.json()
+            for p in products:
+                if "_id" in p and "id" not in p:
+                    p["id"] = str(p["_id"])
+        else:
+            error = f"Error al obtener productos desde la API (HTTP {response.status_code})."
+    except httpx.RequestError:
+        error = "No se pudo conectar con la API de FastAPI. Verifica que el servidor de la API esté iniciado."
+    except Exception as e:
+        error = f"Error inesperado al obtener productos: {str(e)}"
+
+    return render(request, "catalog/admin_panel.html", {
+        "products": products,
+        "error": error,
+        "active_tab": "admin",
+    })
+
+
+def product_create(request):
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        description = request.POST.get("description", "").strip()
+        category = request.POST.get("category", "").strip()
+
+        try:
+            price = float(request.POST.get("price", 0))
+            stock = int(request.POST.get("stock", 0))
+        except ValueError:
+            price = 0
+            stock = 0
+
+        if name and description and category and price > 0 and stock >= 0:
+            payload = {
+                "name": name,
+                "description": description,
+                "price": price,
+                "stock": stock,
+                "category": category,
+            }
+
+            try:
+                fetch_api("POST", "/products/", json=payload)
+            except Exception as e:
+                print(f"Error al crear producto: {e}")
+
+    return redirect("admin_panel")
+
+
+def product_edit(request, product_id):
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        description = request.POST.get("description", "").strip()
+        category = request.POST.get("category", "").strip()
+
+        try:
+            price = float(request.POST.get("price", 0))
+            stock = int(request.POST.get("stock", 0))
+        except ValueError:
+            price = 0
+            stock = 0
+
+        if name and description and category and price > 0 and stock >= 0:
+            payload = {
+                "name": name,
+                "description": description,
+                "price": price,
+                "stock": stock,
+                "category": category,
+            }
+
+            try:
+                fetch_api("PUT", f"/products/{product_id}", json=payload)
+            except Exception as e:
+                print(f"Error al editar producto: {e}")
+
+    return redirect("admin_panel")
+
+
+def product_delete(request, product_id):
+    if request.method == "POST":
+        try:
+            fetch_api("DELETE", f"/products/{product_id}")
+        except Exception as e:
+            print(f"Error al eliminar producto: {e}")
+
+    return redirect("admin_panel")
+
+
+def orders_list(request):
+    orders = []
+    error = None
+
+    try:
+        response = fetch_api("GET", "/orders/")
+        if response.status_code == 200:
+            orders = response.json()
+            for o in orders:
+                if "_id" in o and "id" not in o:
+                    o["id"] = str(o["_id"])
+        else:
+            error = f"Error al consultar la lista de pedidos desde la API (HTTP {response.status_code})."
+    except httpx.RequestError:
+        error = "No se pudo conectar con la API de FastAPI. Verifica que el servidor de la API esté iniciado."
+    except Exception as e:
+        error = f"Error inesperado al obtener pedidos: {str(e)}"
+
+    return render(request, "catalog/orders_list.html", {
+        "orders": orders,
+        "error": error,
+        "active_tab": "orders",
+    })
+
+
+def order_detail(request, order_id):
+    order = None
+    product = None
+    error = None
+
+    try:
+        response = fetch_api("GET", f"/orders/{order_id}")
+        if response.status_code == 200:
+            order = response.json()
+            if "_id" in order and "id" not in order:
+                order["id"] = str(order["_id"])
+
+            product_id = order.get("product_id")
+            if product_id:
+                try:
+                    prod_resp = fetch_api("GET", f"/products/{product_id}")
+                    if prod_resp.status_code == 200:
+                        product = prod_resp.json()
+                        if "_id" in product and "id" not in product:
+                            product["id"] = str(product["_id"])
+                except Exception:
+                    pass
+        else:
+            error = f"No se encontró el pedido con ID '{order_id}' (HTTP {response.status_code})."
+    except httpx.RequestError:
+        error = "No se pudo conectar con la API de FastAPI."
+    except Exception as e:
+        error = f"Error al cargar el detalle del pedido: {str(e)}"
+
+    return render(request, "catalog/order_detail.html", {
+        "order": order,
+        "product": product,
+        "error": error,
+        "active_tab": "orders",
     })

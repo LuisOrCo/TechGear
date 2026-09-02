@@ -20,6 +20,15 @@ def get_products():
     return products
 
 
+def get_product_by_id(product_id: str):
+    if not ObjectId.is_valid(product_id):
+        return None
+    product = db["productos"].find_one({"_id": ObjectId(product_id)})
+    if product:
+        product["_id"] = str(product["_id"])
+    return product
+
+
 def update_product(product_id, product_data):
     result = db["productos"].update_one(
         {"_id": ObjectId(product_id)},
